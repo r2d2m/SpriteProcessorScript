@@ -9,14 +9,12 @@ public class SpriteProcessor : AssetPostprocessor
 
     void OnPreprocessTexture()
     {
-        //For a sprite-based games, we want textures to have certain common properites whether they are sprite sheets or not
-        //However, some of these values should probably change from project to project, so please change what I have here to fit your needs
-        TextureImporter textureImporter = (TextureImporter)assetImporter;
-        textureImporter.textureType = TextureImporterType.Sprite;
-        textureImporter.spriteImportMode = SpriteImportMode.Multiple;
-        textureImporter.mipmapEnabled = false;
-        textureImporter.filterMode = FilterMode.Point;
-        textureImporter.spritePixelsPerUnit = 16;
+        TextureImporter ti = (TextureImporter)assetImporter;
+        ti.textureType = TextureImporterType.Sprite;
+        ti.spriteImportMode = SpriteImportMode.Multiple;
+        ti.spritePixelsPerUnit = 16;
+        ti.mipmapEnabled = false;
+        ti.filterMode = FilterMode.Point;
     }
 
     public void OnPostprocessTexture(Texture2D texture)
