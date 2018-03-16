@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
@@ -22,15 +22,17 @@ public class SpriteProcessor : AssetPostprocessor
     public void OnPostprocessTexture(Texture2D texture)
     {
         string path =  assetPath;
-        string parentDirectoryPathName = Directory.GetParent( path ).Name;
+        string parentDirectoryName = Directory.GetParent( path ).Name;
         int spriteSize = 0;
 
         //If destination directory name of imported texture can be converted to an int, assume that it was meant to be sliced as a sprite sheet 
 
-        if (System.Int32.TryParse(parentDirectoryPathName, out spriteSize) )
+        if (System.Int32.TryParse(parentDirectoryName, out spriteSize) )
         {
             int colCount = texture.width / spriteSize;
             int rowCount = texture.height / spriteSize;
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+            int i = 0;
 
             List<SpriteMetaData> metas = new List<SpriteMetaData>();
 
@@ -40,8 +42,9 @@ public class SpriteProcessor : AssetPostprocessor
                 {
                     SpriteMetaData meta = new SpriteMetaData();
                     meta.rect = new Rect(c * spriteSize, r * spriteSize, spriteSize, spriteSize);
-                    meta.name = c + "-" + r;
+                    meta.name = fileName + "_" + i;
                     metas.Add(meta);
+                    i++;
                 }
             }
 
@@ -60,27 +63,27 @@ public class SpriteProcessor : AssetPostprocessor
 public class SliceSpriteWindow : EditorWindow
 {
 
-    string TexturePath;
-    int TextureWidth = 0;
-    int TextureHeight = 0;
-    int SpriteSize = 0;
+    string texturePath;
+    int textureWidth = 0;
+    int textureHeight = 0;
+    int spriteSize = 0;
 
     public void ShowSpriteSlicePopup(int spriteSize, int textureWidth, int textureHeight, string texturePath)
     {
-        TexturePath = texturePath;
-        TextureWidth = textureWidth;
-        TextureHeight = textureHeight;
-        SpriteSize = spriteSize;
+        this.texturePath = texturePath;
+        this.textureWidth = textureWidth;
+        this.textureHeight = textureHeight;
+        this.spriteSize = spriteSize;
         ShowPopup();
     }
 
     void OnGUI()
     {
-        EditorGUILayout.LabelField(TexturePath +" sliced as a sprite sheet", EditorStyles.wordWrappedLabel);
+        EditorGUILayout.LabelField(texturePath +" sliced as a sprite sheet", EditorStyles.wordWrappedLabel);
         GUILayout.Space(15);
-        EditorGUILayout.LabelField("Sheet size: " + TextureWidth + "x" + TextureHeight, EditorStyles.wordWrappedLabel);
+        EditorGUILayout.LabelField("Sheet size: " + textureWidth + "x" + textureHeight, EditorStyles.wordWrappedLabel);
         GUILayout.Space(15);
-        EditorGUILayout.LabelField("Sprite size: " + SpriteSize + "x" + SpriteSize, EditorStyles.wordWrappedLabel);
+        EditorGUILayout.LabelField("Sprite size: " + spriteSize + "x" + spriteSize, EditorStyles.wordWrappedLabel);
         GUILayout.Space(15);
 
         if (GUILayout.Button("Awesome")) this.Close();
