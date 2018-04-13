@@ -1,5 +1,7 @@
 # SpriteProcessorScript
 
+NOTE: Originally tested in Unity 5.2.2f1. Works up to 2017.4.1f1, but doesn't actually process the sprites until you reimport the assets into your project (the Reimport option shows up by right-clicking the asset within Unity).
+
 This script should be used in Unity projects that use sprite-sheets for sprite-based animations.
 
 Place this script in a directory named Editor in your Unity project, with the Assets directory as the root. eg. "/Assets/Editor"
