@@ -14,3 +14,6 @@ The script slices the spreet sheet by the number of pixels of the name of the di
 A pop-up will appear if the sprite sheet was successfully sliced.
 
 After the import, the sliced sprite sheet is ready for animation, saving you the trouble! Hope it helps.
+
+More in-depth tutorial on Gamasutra:
+http://gamasutra.com/blogs/AlexBelzer/20180319/315600/Working_with_Pixel_Art_Sprites_in_Unity_Importing_Assets.php
