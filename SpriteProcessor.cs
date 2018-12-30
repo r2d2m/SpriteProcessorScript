@@ -1,42 +1,56 @@
-using UnityEngine;
-using UnityEditor;
 using System.Collections.Generic;
 using System.IO;
+using UnityEngine;
+using UnityEditor;
 
-
+/// <summary>
+/// Note: Will only work when manually triggering "Reimport" on a file, not when importing a file to Unity for the first time.
+/// In order for this to work the grandparent directory must be names "AutoProcessedSpriteSheet"
+/// The immediate parent directory must be named the desired tile size of the sliced spritesheet in pixels, plus underscore, plus the desired pixels per unit
+///     eg. "16_100"
+/// </summary>
 public class SpriteProcessor : AssetPostprocessor
 {
+    bool continueProcess = false;
+    int ppu = 16;
+    int spriteSize = 16;
 
     void OnPreprocessTexture()
     {
+        if (Directory.GetParent(assetPath).Parent.Name != "AutoProcessedSpriteSheet") return;
+
         TextureImporter ti = (TextureImporter)assetImporter;
         ti.textureType = TextureImporterType.Sprite;
         ti.spriteImportMode = SpriteImportMode.Multiple;
-        ti.spritePixelsPerUnit = 16;
         ti.mipmapEnabled = false;
         ti.filterMode = FilterMode.Point;
+
+        string[] parentDir = Directory.GetParent(assetPath).Name.Split('_');
+
+        //If we can't parse the parent directory values as integers, don't continue processing the sprite
+        if ( !System.Int32.TryParse(parentDir[0], out spriteSize) && !System.Int32.TryParse(parentDir[1], out ppu) ) return;
+
+        ti.spritePixelsPerUnit = ppu;
+        continueProcess = true;
     }
 
     public void OnPostprocessTexture(Texture2D texture)
     {
-        string path =  assetPath;
-        string parentDirectoryName = Directory.GetParent( path ).Name;
-        int spriteSize = 0;
+        //If we failed requirement during the PreProcess stage, return
+        if (!continueProcess) return;
 
-        //If destination directory name of imported texture can be converted to an int, assume that it was meant to be sliced as a sprite sheet 
-
-        if (System.Int32.TryParse(parentDirectoryName, out spriteSize) )
+        if ( spriteSize > 0 )
         {
             int colCount = texture.width / spriteSize;
             int rowCount = texture.height / spriteSize;
-            string fileName = System.IO.Path.GetFileNameWithoutExtension(path);
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(assetPath);
             int i = 0;
 
             List<SpriteMetaData> metas = new List<SpriteMetaData>();
 
-            for (int r = 0; r < rowCount; ++r)
+            for (int r = rowCount - 1; r > -1; r--)
             {
-                for (int c = 0; c < colCount; ++c)
+                for (int c = 0; c < colCount; c++)
                 {
                     SpriteMetaData meta = new SpriteMetaData();
                     meta.rect = new Rect(c * spriteSize, r * spriteSize, spriteSize, spriteSize);
@@ -49,42 +63,7 @@ public class SpriteProcessor : AssetPostprocessor
             TextureImporter textureImporter = (TextureImporter)assetImporter;
             textureImporter.spritesheet = metas.ToArray();
 
-            //Display pop-up window exposing that something auto-magical just happened
-            SliceSpriteWindow window = ScriptableObject.CreateInstance<SliceSpriteWindow>();
-            window.position = new Rect(Screen.width / 2, Screen.height / 2, 500, 125);
-            window.ShowSpriteSlicePopup(spriteSize, texture.width, texture.height, path);
         }
     }
     
-}
-
-public class SliceSpriteWindow : EditorWindow
-{
-
-    string texturePath;
-    int textureWidth = 0;
-    int textureHeight = 0;
-    int spriteSize = 0;
-
-    public void ShowSpriteSlicePopup(int spriteSize, int textureWidth, int textureHeight, string texturePath)
-    {
-        this.texturePath = texturePath;
-        this.textureWidth = textureWidth;
-        this.textureHeight = textureHeight;
-        this.spriteSize = spriteSize;
-        ShowPopup();
-    }
-
-    void OnGUI()
-    {
-        EditorGUILayout.LabelField(texturePath +" sliced as a sprite sheet", EditorStyles.wordWrappedLabel);
-        GUILayout.Space(15);
-        EditorGUILayout.LabelField("Sheet size: " + textureWidth + "x" + textureHeight, EditorStyles.wordWrappedLabel);
-        GUILayout.Space(15);
-        EditorGUILayout.LabelField("Sprite size: " + spriteSize + "x" + spriteSize, EditorStyles.wordWrappedLabel);
-        GUILayout.Space(15);
-
-        if (GUILayout.Button("Awesome")) this.Close();
-    }
-
 }
